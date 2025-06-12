@@ -1,0 +1,44 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  slug         String    @unique // Ex: "joao-silva" para a URL pública
+  name         String
+  email        String    @unique
+  password     String
+  specialty    String?
+
+  googleTokens Json?     // Para armazenar access_token e refresh_token
+
+  availability Availability?
+  appointments Appointment[] @relation("ProfessionalAppointments")
+}
+
+model Availability {
+  id        Int    @id @default(autoincrement())
+  weekdays  Int[]  // Dias da semana (0=Dom, 1=Seg, ...)
+  startTime String // Formato "HH:mm"
+  endTime   String // Formato "HH:mm"
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
+
+model Appointment {
+  id             Int      @id @default(autoincrement())
+  clientName     String
+  clientEmail    String
+  startTime      DateTime
+  endTime        DateTime
+
+  professional   User     @relation("ProfessionalAppointments", fields: [professionalId], references: [id])
+  professionalId String
+}
